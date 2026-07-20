@@ -1,8 +1,11 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
+using SomeTexty.Tools;
 
 namespace SomeTexty;
 
@@ -23,10 +26,62 @@ public partial class FlyoutPanel : Window
 
     private readonly Stopwatch _sinceHidden = Stopwatch.StartNew();
 
+    private static readonly Brush TabSelectedBackground = CreateFrozen("#FF333333");
+    private static readonly Brush TabSelectedForeground = CreateFrozen("#FFE6E6E6");
+    private static readonly Brush TabIdleForeground = CreateFrozen("#FF9A9A9A");
+
+    /// <summary>Views are built once per tool and reused so state survives tab switches.</summary>
+    private readonly Dictionary<ITextTool, UserControl> _views = new();
+    private readonly List<Button> _tabs = new();
+
     public FlyoutPanel()
     {
         InitializeComponent();
         Deactivated += (_, _) => HidePanel();
+        BuildTabs();
+    }
+
+    private void BuildTabs()
+    {
+        var tabStyle = (Style)Resources["TabButton"];
+
+        foreach (var tool in ToolRegistry.Tools)
+        {
+            var tab = new Button { Style = tabStyle, Content = tool.Name, Tag = tool };
+            tab.Click += (_, _) => SelectTool(tool);
+            TabStrip.Children.Add(tab);
+            _tabs.Add(tab);
+        }
+
+        if (ToolRegistry.Tools.Count > 0)
+        {
+            SelectTool(ToolRegistry.Tools[0]);
+        }
+    }
+
+    private void SelectTool(ITextTool tool)
+    {
+        if (!_views.TryGetValue(tool, out var view))
+        {
+            view = tool.CreateView();
+            _views[tool] = view;
+        }
+
+        ToolContent.Content = view;
+
+        foreach (var tab in _tabs)
+        {
+            bool selected = ReferenceEquals(tab.Tag, tool);
+            tab.Background = selected ? TabSelectedBackground : Brushes.Transparent;
+            tab.Foreground = selected ? TabSelectedForeground : TabIdleForeground;
+        }
+    }
+
+    private static Brush CreateFrozen(string hex)
+    {
+        var brush = (Brush)new BrushConverter().ConvertFromString(hex)!;
+        brush.Freeze();
+        return brush;
     }
 
     protected override void OnSourceInitialized(EventArgs e)

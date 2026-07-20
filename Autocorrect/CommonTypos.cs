@@ -1,0 +1,98 @@
+namespace SomeTexty.Autocorrect;
+
+/// <summary>
+/// High-confidence fixes for very common misspellings. Hunspell's own top
+/// suggestion is often wrong for these (it offers "Te" for "teh"), so when a
+/// flagged word is in this list its correction is surfaced first.
+/// Keys are lowercase; lookups are case-insensitive.
+/// </summary>
+public static class CommonTypos
+{
+    private static readonly IReadOnlyDictionary<string, string> Map =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["teh"] = "the",
+            ["hte"] = "the",
+            ["adn"] = "and",
+            ["nad"] = "and",
+            ["taht"] = "that",
+            ["thsi"] = "this",
+            ["wiht"] = "with",
+            ["jsut"] = "just",
+            ["dont"] = "don't",
+            ["cant"] = "can't",
+            ["wont"] = "won't",
+            ["isnt"] = "isn't",
+            ["arent"] = "aren't",
+            ["wasnt"] = "wasn't",
+            ["werent"] = "weren't",
+            ["doesnt"] = "doesn't",
+            ["didnt"] = "didn't",
+            ["couldnt"] = "couldn't",
+            ["wouldnt"] = "wouldn't",
+            ["shouldnt"] = "shouldn't",
+            ["hasnt"] = "hasn't",
+            ["havent"] = "haven't",
+            ["hadnt"] = "hadn't",
+            ["im"] = "I'm",
+            ["ive"] = "I've",
+            ["ill"] = "I'll",
+            ["id"] = "I'd",
+            ["youre"] = "you're",
+            ["youve"] = "you've",
+            ["theyre"] = "they're",
+            ["theyve"] = "they've",
+            ["its"] = "it's",
+            ["thats"] = "that's",
+            ["whats"] = "what's",
+            ["lets"] = "let's",
+            ["recieve"] = "receive",
+            ["recieved"] = "received",
+            ["beleive"] = "believe",
+            ["seperate"] = "separate",
+            ["definately"] = "definitely",
+            ["occured"] = "occurred",
+            ["occurance"] = "occurrence",
+            ["neccessary"] = "necessary",
+            ["accross"] = "across",
+            ["untill"] = "until",
+            ["wich"] = "which",
+            ["becuase"] = "because",
+            ["freind"] = "friend",
+            ["thier"] = "their",
+            ["alot"] = "a lot",
+            ["reccomend"] = "recommend",
+            ["tommorow"] = "tomorrow",
+            ["tommorrow"] = "tomorrow",
+            ["enviroment"] = "environment",
+            ["goverment"] = "government",
+            ["independant"] = "independent",
+            ["arguement"] = "argument",
+            ["calender"] = "calendar",
+            ["comming"] = "coming",
+            ["begining"] = "beginning",
+            ["writting"] = "writing",
+            ["realy"] = "really",
+            ["reallly"] = "really",
+            ["wierd"] = "weird",
+            ["acheive"] = "achieve",
+            ["greatful"] = "grateful",
+            ["truely"] = "truly",
+            ["publically"] = "publicly",
+            ["succesful"] = "successful",
+            ["successfull"] = "successful",
+            ["adress"] = "address",
+            ["appologise"] = "apologise",
+            ["existance"] = "existence",
+            ["basicly"] = "basically",
+            ["thne"] = "then",
+            ["wtih"] = "with",
+            ["yuor"] = "your",
+            ["yoru"] = "your",
+            ["ot"] = "to",
+            ["fo"] = "of",
+        };
+
+    public static bool TryGetCorrection(string word, out string correction)
+        => Map.TryGetValue(word, out correction!);
+}

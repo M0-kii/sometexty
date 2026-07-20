@@ -1,4 +1,5 @@
 using System.Windows;
+using SomeTexty.Autocorrect;
 
 namespace SomeTexty;
 
@@ -22,6 +23,9 @@ public partial class App : Application
         }
 
         _tray = new TrayIcon();
+
+        // Load the dictionary off the UI thread so the first check doesn't stall.
+        Task.Run(() => _ = SpellEngine.Instance);
     }
 
     protected override void OnExit(ExitEventArgs e)

@@ -11,6 +11,32 @@
         Topmost="True"
         SnapsToDevicePixels="True">
 
+    <Window.Resources>
+        <!-- Flat, rounded tab button. Selected/hover states are set in code. -->
+        <Style x:Key="TabButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#FF9A9A9A" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <!-- Outer margin leaves room for the drop shadow to render. -->
     <Border Margin="12"
             CornerRadius="10"
@@ -24,6 +50,7 @@
         <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -34,13 +61,12 @@
                        FontSize="14"
                        FontWeight="SemiBold" />
 
-            <TextBlock Grid.Row="1"
-                       Text="Tools go here."
-                       Foreground="#FF8A8A8A"
-                       FontFamily="Segoe UI"
-                       FontSize="12"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Center" />
+            <StackPanel x:Name="TabStrip"
+                        Grid.Row="1"
+                        Orientation="Horizontal"
+                        Margin="0,12,0,12" />
+
+            <ContentControl x:Name="ToolContent" Grid.Row="2" />
         </Grid>
     </Border>
 </Window>

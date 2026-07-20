@@ -11,10 +11,16 @@
 
   <ItemGroup>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+    <PackageReference Include="WeCantSpell.Hunspell" Version="7.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Assets\tray.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Dictionaries\en_US.dic" />
+    <EmbeddedResource Include="Dictionaries\en_US.aff" />
   </ItemGroup>
 
 </Project>
