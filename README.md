@@ -1,8 +1,15 @@
 # SomeTexty
 
+[![CI](https://github.com/M0-kii/sometexty/actions/workflows/ci.yml/badge.svg)](https://github.com/M0-kii/sometexty/actions/workflows/ci.yml)
+
 A small Windows tray utility for quick text tools. It lives in the system tray
 (including the hidden-icons overflow) and opens a compact panel above the tray
 when you click its icon.
+
+## Download
+
+Grab `SomeTexty.exe` from the [latest release](https://github.com/M0-kii/sometexty/releases/latest).
+It is self-contained, so it runs without installing .NET. No installer: just run it.
 
 ## Status
 

@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build
+        run: dotnet build SomeTexty.csproj -c Release
+
+      - name: Test
+        run: dotnet test tests/SomeTexty.Tests/SomeTexty.Tests.csproj -c Release
+
+  release:
+    # Only for version tags, and only once the build and tests have passed.
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Self-contained single file: runs on a clean Windows machine with no
+      # .NET install. Compression trades a little startup time for a much
+      # smaller download.
+      - name: Publish standalone executable
+        run: >
+          dotnet publish SomeTexty.csproj -c Release -r win-x64 --self-contained
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -o publish
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SomeTexty-win-x64
+          path: publish/SomeTexty.exe
+
+      - name: Attach executable to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag publish/SomeTexty.exe --clobber
+          } else {
+            gh release create $tag publish/SomeTexty.exe --title "SomeTexty $tag" --generate-notes
+          }
