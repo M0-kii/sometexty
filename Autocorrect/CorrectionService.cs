@@ -15,6 +15,24 @@ public sealed class CorrectionService
 
     public CorrectionService(SpellEngine engine) => _engine = engine;
 
+    /// <summary>Adds a word to the personal dictionary so it stops being flagged.</summary>
+    public void AddToDictionary(string word) => _engine.AddToPersonal(word);
+
+    /// <summary>
+    /// Positions of every misspelled word occurrence (not de-duplicated), for
+    /// drawing underlines. Unlike <see cref="Analyze"/>, this keeps each occurrence.
+    /// </summary>
+    public IEnumerable<(int Start, int Length)> FindMisspelledSpans(string text)
+    {
+        foreach (var token in TextTokenizer.Tokenize(text))
+        {
+            if (!_engine.IsCorrect(token.Value))
+            {
+                yield return (token.Start, token.Length);
+            }
+        }
+    }
+
     /// <summary>
     /// Distinct misspelled words in the text, in the order first seen. Comparison
     /// is case-insensitive so "Teh" and "teh" collapse into one entry.

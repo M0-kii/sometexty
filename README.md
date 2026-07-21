@@ -6,23 +6,29 @@ when you click its icon.
 
 ## Status
 
-Early development, but usable. The tray app, flyout panel, and an offline
-autocorrect tool are working.
+Early development, but usable. A handful of text tools work, along with a
+settings screen and a global hotkey.
 
 ## Features
 
 - Runs from the system tray, out of the way
-- Borderless panel that anchors above the tray and dismisses when it loses focus
+- Borderless panel that anchors above the tray, with a global hotkey
+  (`Ctrl+Shift+Space`) to open it from anywhere
 - Single instance; stays out of the taskbar and Alt+Tab
-- Offline autocorrect: spelling suggestions, one-click "fix all", and copy, with
-  original casing preserved
-- A tab-based tool shell, so new text tools can be added without touching the panel
+- Optionally pastes clipboard text into the active tool when it opens
 
-### Planned
+Tools:
 
-- Case conversion tools
-- Personal dictionary and saved settings
-- Inline underlining of misspelled words in the text box
+- **Autocorrect** — offline spelling suggestions with inline underlines,
+  one-click "fix all" (undoable), and a personal dictionary; casing preserved
+- **Case** — upper, lower, title, and sentence case
+- **Count** — live word, character, and line counts
+- **Clean** — trim lines, collapse spaces, remove blank lines, join lines
+- **Replace** — plain find and replace, with an optional match-case switch
+
+Settings let you toggle start-with-Windows, auto-hide, and clipboard paste, and
+manage the personal dictionary. New tools plug into the tab shell without
+touching the panel.
 
 ## Requirements
 
@@ -33,6 +39,12 @@ autocorrect tool are working.
 
 ```
 dotnet run
+```
+
+Run the tests:
+
+```
+dotnet test tests/SomeTexty.Tests
 ```
 
 To produce a standalone executable:

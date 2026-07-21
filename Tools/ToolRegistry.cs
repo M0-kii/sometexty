@@ -1,4 +1,8 @@
 using SomeTexty.Autocorrect;
+using SomeTexty.CaseConversion;
+using SomeTexty.Clean;
+using SomeTexty.Count;
+using SomeTexty.Replace;
 
 namespace SomeTexty.Tools;
 
@@ -11,6 +15,9 @@ public static class ToolRegistry
     public static IReadOnlyList<ITextTool> Tools { get; } = new ITextTool[]
     {
         new AutocorrectTool(),
-        new PlaceholderTool("Case", "Case tools are coming soon."),
+        new CaseTool(),
+        new CountTool(),
+        new CleanTool(),
+        new ReplaceTool(),
     };
 }

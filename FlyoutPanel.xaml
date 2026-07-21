@@ -18,7 +18,7 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="10,5" />
-            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Margin" Value="0,0,6,6" />
             <Setter Property="FontFamily" Value="Segoe UI" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Cursor" Value="Hand" />
@@ -38,11 +38,16 @@
     </Window.Resources>
 
     <!-- Outer margin leaves room for the drop shadow to render. -->
-    <Border Margin="12"
+    <Border x:Name="RootCard"
+            Margin="12"
             CornerRadius="10"
             Background="#FF1F1F1F"
             BorderBrush="#FF3A3A3A"
-            BorderThickness="1">
+            BorderThickness="1"
+            RenderTransformOrigin="0.5,1">
+        <Border.RenderTransform>
+            <TranslateTransform x:Name="CardShift" />
+        </Border.RenderTransform>
         <Border.Effect>
             <DropShadowEffect BlurRadius="16" ShadowDepth="2" Direction="270" Opacity="0.45" Color="Black" />
         </Border.Effect>
@@ -54,17 +59,32 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0"
-                       Text="SomeTexty"
-                       Foreground="#FFE6E6E6"
-                       FontFamily="Segoe UI"
-                       FontSize="14"
-                       FontWeight="SemiBold" />
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-            <StackPanel x:Name="TabStrip"
-                        Grid.Row="1"
-                        Orientation="Horizontal"
-                        Margin="0,12,0,12" />
+                <TextBlock x:Name="HeaderTitle"
+                           Grid.Column="0"
+                           Text="SomeTexty"
+                           Foreground="#FFE6E6E6"
+                           FontFamily="Segoe UI"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+
+                <Button x:Name="SettingsButton"
+                        Grid.Column="1"
+                        Style="{StaticResource IconButton}"
+                        Content="&#xE713;"
+                        ToolTip="Settings"
+                        Click="OnSettingsClick" />
+            </Grid>
+
+            <WrapPanel x:Name="TabStrip"
+                       Grid.Row="1"
+                       Margin="0,12,0,6" />
 
             <ContentControl x:Name="ToolContent" Grid.Row="2" />
         </Grid>

@@ -34,6 +34,10 @@ public sealed class TrayIcon : IDisposable
         open.Click += (_, _) => TogglePanel();
         menu.Items.Add(open);
 
+        var settings = new MenuItem { Header = "Settings" };
+        settings.Click += (_, _) => _panel.OpenSettings();
+        menu.Items.Add(settings);
+
         menu.Items.Add(new Separator());
 
         var quit = new MenuItem { Header = "Quit" };

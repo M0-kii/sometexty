@@ -5,6 +5,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using SomeTexty.Hotkeys;
+using SomeTexty.Settings;
 using SomeTexty.Tools;
 
 namespace SomeTexty;
@@ -34,11 +37,76 @@ public partial class FlyoutPanel : Window
     private readonly Dictionary<ITextTool, UserControl> _views = new();
     private readonly List<Button> _tabs = new();
 
+    private SettingsView? _settingsView;
+    private ITextTool? _activeTool;
+    private bool _showingSettings;
+    private GlobalHotkey? _hotkey;
+
     public FlyoutPanel()
     {
         InitializeComponent();
-        Deactivated += (_, _) => HidePanel();
+        Deactivated += OnDeactivated;
         BuildTabs();
+
+        // Create the window handle now (without showing) so the global hotkey is
+        // live from launch, before the panel has ever been opened.
+        new WindowInteropHelper(this).EnsureHandle();
+    }
+
+    private void OnDeactivated(object? sender, EventArgs e)
+    {
+        // Respect the user's auto-hide preference; some prefer the panel to stay put.
+        if (SettingsStore.Load().HideOnFocusLoss)
+        {
+            HidePanel();
+        }
+    }
+
+    private void OnSettingsClick(object sender, RoutedEventArgs e)
+    {
+        if (_showingSettings)
+        {
+            ShowTools();
+        }
+        else
+        {
+            ShowSettings();
+        }
+    }
+
+    /// <summary>Opens the panel (if hidden) and switches straight to settings. Used by the tray menu.</summary>
+    public void OpenSettings()
+    {
+        if (!IsVisible)
+        {
+            ShowPanel();
+        }
+
+        ShowSettings();
+    }
+
+    private void ShowSettings()
+    {
+        _settingsView ??= new SettingsView();
+        _settingsView.Refresh();
+
+        ToolContent.Content = _settingsView;
+        TabStrip.Visibility = Visibility.Collapsed;
+        HeaderTitle.Text = "Settings";
+        _showingSettings = true;
+        FadeInContent();
+    }
+
+    private void ShowTools()
+    {
+        TabStrip.Visibility = Visibility.Visible;
+        HeaderTitle.Text = "SomeTexty";
+        _showingSettings = false;
+
+        if (_activeTool is not null)
+        {
+            SelectTool(_activeTool);
+        }
     }
 
     private void BuildTabs()
@@ -61,6 +129,8 @@ public partial class FlyoutPanel : Window
 
     private void SelectTool(ITextTool tool)
     {
+        _activeTool = tool;
+
         if (!_views.TryGetValue(tool, out var view))
         {
             view = tool.CreateView();
@@ -68,6 +138,7 @@ public partial class FlyoutPanel : Window
         }
 
         ToolContent.Content = view;
+        FadeInContent();
 
         foreach (var tab in _tabs)
         {
@@ -75,6 +146,16 @@ public partial class FlyoutPanel : Window
             tab.Background = selected ? TabSelectedBackground : Brushes.Transparent;
             tab.Foreground = selected ? TabSelectedForeground : TabIdleForeground;
         }
+    }
+
+    /// <summary>Briefly fades the content area in when its contents change.</summary>
+    private void FadeInContent()
+    {
+        var fade = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(110))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+        };
+        ToolContent.BeginAnimation(OpacityProperty, fade);
     }
 
     private static Brush CreateFrozen(string hex)
@@ -87,7 +168,23 @@ public partial class FlyoutPanel : Window
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
-        NativeMethods.HideFromAltTab(new WindowInteropHelper(this).Handle);
+        var handle = new WindowInteropHelper(this).Handle;
+        NativeMethods.HideFromAltTab(handle);
+
+        _hotkey = new GlobalHotkey(handle, ModifierKeys.Control | ModifierKeys.Shift, Key.Space);
+        _hotkey.Pressed += ToggleFromHotkey;
+    }
+
+    private void ToggleFromHotkey()
+    {
+        if (IsVisible)
+        {
+            HidePanel();
+        }
+        else
+        {
+            ShowPanel();
+        }
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -122,9 +219,42 @@ public partial class FlyoutPanel : Window
             return;
         }
 
+        ShowPanel();
+    }
+
+    private void ShowPanel()
+    {
         MoveToTrayCorner();
         Show();
         Activate();
+        PlayOpenAnimation();
+        OfferClipboardToActiveTool();
+    }
+
+    /// <summary>If enabled, pre-fills the active tool with clipboard text (only if its input is empty).</summary>
+    private void OfferClipboardToActiveTool()
+    {
+        if (!SettingsStore.Load().GrabClipboardOnOpen || ToolContent.Content is not IClipboardAware aware)
+        {
+            return;
+        }
+
+        if (Clipboard.ContainsText())
+        {
+            aware.OfferClipboardText(Clipboard.GetText());
+        }
+    }
+
+    /// <summary>A quick fade-and-rise as the panel appears.</summary>
+    private void PlayOpenAnimation()
+    {
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+        RootCard.BeginAnimation(OpacityProperty,
+            new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(150)) { EasingFunction = ease });
+
+        CardShift.BeginAnimation(TranslateTransform.YProperty,
+            new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(180)) { EasingFunction = ease });
     }
 
     private void HidePanel()
