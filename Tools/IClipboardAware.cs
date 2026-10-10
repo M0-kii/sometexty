@@ -1,9 +1,7 @@
 namespace SomeTexty.Tools;
 
 /// <summary>
-/// Implemented by tool views that can be pre-filled with clipboard text when the
-/// panel opens. Implementations should only fill when their input is empty, so an
-/// open never clobbers text the user is already working on.
+/// Accepts clipboard text when the panel opens. Only fill an empty input.
 /// </summary>
 public interface IClipboardAware
 {

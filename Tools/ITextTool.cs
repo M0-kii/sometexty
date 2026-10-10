@@ -3,9 +3,7 @@ using System.Windows.Controls;
 namespace SomeTexty.Tools;
 
 /// <summary>
-/// A single tool hosted in the flyout panel. Each tool contributes a tab and
-/// the view shown when that tab is active. Adding a feature means implementing
-/// this and registering it in <see cref="ToolRegistry"/>; the panel needs no changes.
+/// A tab and its view. Register new tools in <see cref="ToolRegistry"/>.
 /// </summary>
 public interface ITextTool
 {

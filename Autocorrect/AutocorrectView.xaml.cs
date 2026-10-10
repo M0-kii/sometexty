@@ -11,22 +11,42 @@ public partial class AutocorrectView : UserControl, IClipboardAware
 {
     private const int MaxSuggestionsShown = 8;
 
-    private readonly CorrectionService _service = new(SpellEngine.Instance);
-    private readonly DispatcherTimer _debounce;
+    private CorrectionService? _service;
+    private bool _loadFailed;
+    private readonly DispatcherTimer _debounce = new() { Interval = TimeSpan.FromMilliseconds(350) };
 
     private IReadOnlyList<Misspelling> _current = Array.Empty<Misspelling>();
     private SquiggleAdorner? _squiggle;
 
-    public AutocorrectView()
+    public AutocorrectView() : this(SpellEngine.LoadAsync())
+    {
+    }
+
+    internal AutocorrectView(Task<SpellEngine> engineTask)
     {
         InitializeComponent();
 
-        _debounce = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
         _debounce.Tick += (_, _) => { _debounce.Stop(); Analyze(); };
 
         Input.Loaded += (_, _) => AttachSquiggleAdorner();
         Input.SizeChanged += (_, _) => RefreshSquiggles();
         Input.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler((_, _) => RefreshSquiggles()));
+
+        Analyze();
+        _ = InitializeSpellCheckAsync(engineTask);
+    }
+
+    private async Task InitializeSpellCheckAsync(Task<SpellEngine> engineTask)
+    {
+        try
+        {
+            var engine = await engineTask;
+            _service = new CorrectionService(engine);
+        }
+        catch (Exception)
+        {
+            _loadFailed = true;
+        }
 
         Analyze();
     }
@@ -52,7 +72,7 @@ public partial class AutocorrectView : UserControl, IClipboardAware
 
     private void RefreshSquiggles()
     {
-        if (_squiggle is null)
+        if (_squiggle is null || _service is null)
         {
             return;
         }
@@ -67,7 +87,7 @@ public partial class AutocorrectView : UserControl, IClipboardAware
 
             if (first.IsEmpty || afterWord.IsEmpty || Math.Abs(first.Top - last.Top) > 0.5)
             {
-                // Word wraps across lines (rare) or isn't laid out; skip it.
+                // Skip words that wrap or haven't been laid out.
                 continue;
             }
 
@@ -88,12 +108,22 @@ public partial class AutocorrectView : UserControl, IClipboardAware
 
     private void OnInputChanged(object sender, TextChangedEventArgs e)
     {
+        UpdateButtons();
         _debounce.Stop();
         _debounce.Start();
     }
 
     private void Analyze()
     {
+        if (_service is null)
+        {
+            Status.Text = _loadFailed
+                ? "Couldn't load the spelling dictionary."
+                : "Loading dictionary…";
+            UpdateButtons();
+            return;
+        }
+
         string text = Input.Text;
 
         if (string.IsNullOrWhiteSpace(text))
@@ -111,7 +141,9 @@ public partial class AutocorrectView : UserControl, IClipboardAware
 
         Status.Text = _current.Count == 0
             ? "No spelling issues."
-            : $"{_current.Count} word(s) to review — click one for suggestions.";
+            : _current.Count == 1
+                ? "1 word to review. Click it for suggestions."
+                : $"{_current.Count} words to review. Click one for suggestions.";
 
         UpdateButtons();
         RefreshSquiggles();
@@ -181,17 +213,27 @@ public partial class AutocorrectView : UserControl, IClipboardAware
 
     private void AddToDictionary(string word)
     {
-        _service.AddToDictionary(word);
-        Analyze(); // The word is no longer flagged; refresh immediately.
+        _service?.AddToDictionary(word);
+        Analyze();
     }
 
     private void ApplySuggestion(string word, string replacement)
     {
+        if (_service is null)
+        {
+            return;
+        }
+
         ReplaceAllText(_service.ReplaceWord(Input.Text, word, replacement));
     }
 
     private void OnFixAll(object sender, RoutedEventArgs e)
     {
+        if (_service is null)
+        {
+            return;
+        }
+
         string text = Input.Text;
 
         foreach (var misspelling in _current)
@@ -206,9 +248,7 @@ public partial class AutocorrectView : UserControl, IClipboardAware
     }
 
     /// <summary>
-    /// Replaces the whole text through the edit pipeline (select-all then overwrite)
-    /// rather than assigning Text directly, so the change stays on the undo stack and
-    /// Ctrl+Z reverts it. Re-analysis follows from the resulting TextChanged.
+    /// Replaces the text through SelectedText so Ctrl+Z can undo it.
     /// </summary>
     private void ReplaceAllText(string text)
     {

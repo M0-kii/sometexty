@@ -5,9 +5,7 @@ using System.Windows.Interop;
 namespace SomeTexty.Hotkeys;
 
 /// <summary>
-/// Registers a single system-wide hotkey against an existing window handle and
-/// raises <see cref="Pressed"/> when it fires. Registration failing (e.g. another
-/// app already owns the combination) is reported but not fatal.
+/// Registers a global hotkey. Check <see cref="IsRegistered"/> for conflicts.
 /// </summary>
 public sealed class GlobalHotkey : IDisposable
 {

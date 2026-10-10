@@ -2,40 +2,33 @@
 
 [![CI](https://github.com/M0-kii/sometexty/actions/workflows/ci.yml/badge.svg)](https://github.com/M0-kii/sometexty/actions/workflows/ci.yml)
 
-A small Windows tray utility for quick text tools. It lives in the system tray
-(including the hidden-icons overflow) and opens a compact panel above the tray
-when you click its icon.
+A small Windows tray app for everyday text edits. Click the tray icon or press
+`Ctrl+Shift+Space` to open it.
 
 ## Download
 
-Grab `SomeTexty.exe` from the [latest release](https://github.com/M0-kii/sometexty/releases/latest).
-It is self-contained, so it runs without installing .NET. No installer: just run it.
+There isn't a release yet. For now, build the app from source using the commands
+below. The publish command produces a standalone executable that doesn't need
+.NET installed on the machine running it.
 
 ## Status
 
-Early development, but usable. A handful of text tools work, along with a
-settings screen and a global hotkey.
+Still in early development.
 
 ## Features
 
-- Runs from the system tray, out of the way
-- Borderless panel that anchors above the tray, with a global hotkey
-  (`Ctrl+Shift+Space`) to open it from anywhere
-- Single instance; stays out of the taskbar and Alt+Tab
-- Optionally pastes clipboard text into the active tool when it opens
+- **Autocorrect:** offline English spelling suggestions, underlined mistakes,
+  and a personal dictionary. Fix all uses the first suggestion for each word;
+  `Ctrl+Z` undoes the change.
+- **Case:** upper, lower, title, and sentence case.
+- **Count:** word, character, and line counts as you type.
+- **Clean:** trim lines, collapse spaces, remove blank lines, or join lines.
+- **Replace:** find and replace text, with an option to match case.
 
-Tools:
-
-- **Autocorrect** — offline spelling suggestions with inline underlines,
-  one-click "fix all" (undoable), and a personal dictionary; casing preserved
-- **Case** — upper, lower, title, and sentence case
-- **Count** — live word, character, and line counts
-- **Clean** — trim lines, collapse spaces, remove blank lines, join lines
-- **Replace** — plain find and replace, with an optional match-case switch
-
-Settings let you toggle start-with-Windows, auto-hide, and clipboard paste, and
-manage the personal dictionary. New tools plug into the tab shell without
-touching the panel.
+The app stays out of the taskbar and Alt+Tab. By default, it hides when you click
+away and fills an empty tool with clipboard text when you open it. You can turn
+either behavior off in Settings, enable launch at sign-in, and remove words from
+your personal dictionary.
 
 ## Requirements
 
@@ -44,23 +37,29 @@ touching the panel.
 
 ## Build and run
 
-```
+```sh
 dotnet run
 ```
 
 Run the tests:
 
-```
+```sh
 dotnet test tests/SomeTexty.Tests
 ```
 
 To produce a standalone executable:
 
-```
-dotnet publish -c Release -r win-x64 --self-contained
+```sh
+dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
 The result is in `bin/Release/net8.0-windows/win-x64/publish/`.
+
+## Adding a tool
+
+Implement `ITextTool` and add the tool to `Tools/ToolRegistry.cs`. The panel creates
+each view once and keeps it between tab switches. Implement `IClipboardAware` on
+the view if it should accept clipboard text when opened.
 
 ## License
 

@@ -6,8 +6,7 @@ namespace SomeTexty.Autocorrect;
 public sealed record Misspelling(string Word, IReadOnlyList<string> Suggestions);
 
 /// <summary>
-/// Finds misspelled words and rewrites them while keeping the original casing.
-/// Sits on top of <see cref="SpellEngine"/> and <see cref="TextTokenizer"/>.
+/// Finds misspellings and preserves casing when replacing words.
 /// </summary>
 public sealed class CorrectionService
 {
@@ -19,8 +18,7 @@ public sealed class CorrectionService
     public void AddToDictionary(string word) => _engine.AddToPersonal(word);
 
     /// <summary>
-    /// Positions of every misspelled word occurrence (not de-duplicated), for
-    /// drawing underlines. Unlike <see cref="Analyze"/>, this keeps each occurrence.
+    /// Positions of all misspelled words, including repeated occurrences.
     /// </summary>
     public IEnumerable<(int Start, int Length)> FindMisspelledSpans(string text)
     {
@@ -34,8 +32,7 @@ public sealed class CorrectionService
     }
 
     /// <summary>
-    /// Distinct misspelled words in the text, in the order first seen. Comparison
-    /// is case-insensitive so "Teh" and "teh" collapse into one entry.
+    /// Distinct misspellings in order of appearance, ignoring case.
     /// </summary>
     public IReadOnlyList<Misspelling> Analyze(string text)
     {
@@ -56,8 +53,7 @@ public sealed class CorrectionService
     }
 
     /// <summary>
-    /// Suggestions for a misspelled word: a known common-typo fix first (when one
-    /// exists), then Hunspell's ranked suggestions, without duplicates.
+    /// Known typo fixes first, followed by Hunspell suggestions without duplicates.
     /// </summary>
     private List<string> BuildSuggestions(string word)
     {

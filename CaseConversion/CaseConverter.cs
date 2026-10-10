@@ -9,8 +9,8 @@ public static partial class CaseConverter
     [GeneratedRegex(@"(?<=^|\s)\p{L}")]
     private static partial Regex WordStart();
 
-    // First letter of each sentence (start of text or after . ! ? and space).
-    [GeneratedRegex(@"(?<=^|[.!?]\s)\p{L}")]
+    // Keep the punctuation and whitespace before each sentence.
+    [GeneratedRegex(@"(^|[.!?]\s+)(\p{L})")]
     private static partial Regex SentenceStart();
 
     public static string ToUpper(string text) => text.ToUpperInvariant();
@@ -21,5 +21,6 @@ public static partial class CaseConverter
         => WordStart().Replace(text.ToLowerInvariant(), m => m.Value.ToUpperInvariant());
 
     public static string ToSentence(string text)
-        => SentenceStart().Replace(text.ToLowerInvariant(), m => m.Value.ToUpperInvariant());
+        => SentenceStart().Replace(text.ToLowerInvariant(),
+            m => m.Groups[1].Value + m.Groups[2].Value.ToUpperInvariant());
 }

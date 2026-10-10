@@ -22,10 +22,8 @@ public partial class App : Application
             return;
         }
 
+        _ = SpellEngine.LoadAsync();
         _tray = new TrayIcon();
-
-        // Load the dictionary off the UI thread so the first check doesn't stall.
-        Task.Run(() => _ = SpellEngine.Instance);
     }
 
     protected override void OnExit(ExitEventArgs e)

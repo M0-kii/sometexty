@@ -15,8 +15,11 @@ public sealed class SpellEngine
     private const string AffixResource = "SomeTexty.Dictionaries.en_US.aff";
 
     private static readonly Lazy<SpellEngine> Lazy = new(() => new SpellEngine());
+    private static readonly Lazy<Task<SpellEngine>> LoadTask = new(() => Task.Run(() => Instance));
 
     public static SpellEngine Instance => Lazy.Value;
+
+    public static Task<SpellEngine> LoadAsync() => LoadTask.Value;
 
     private readonly WordList _words;
 

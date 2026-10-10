@@ -24,4 +24,12 @@ public class CaseConverterTests
     [Fact]
     public void ToSentence_capitalizes_after_terminators()
         => Assert.Equal("Hello. World? Ok", CaseConverter.ToSentence("hello. world? ok"));
+
+    [Theory]
+    [InlineData("hello.  world", "Hello.  World")]
+    [InlineData("hello!\tworld", "Hello!\tWorld")]
+    [InlineData("hello?\r\nworld", "Hello?\r\nWorld")]
+    [InlineData("hello.\n\n  world", "Hello.\n\n  World")]
+    public void ToSentence_preserves_whitespace_between_sentences(string text, string expected)
+        => Assert.Equal(expected, CaseConverter.ToSentence(text));
 }

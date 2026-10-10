@@ -7,8 +7,7 @@ using SomeTexty.Replace;
 namespace SomeTexty.Tools;
 
 /// <summary>
-/// The set of tools the panel offers, in tab order. This is the one place to
-/// register a new tool.
+/// Tools in tab order.
 /// </summary>
 public static class ToolRegistry
 {

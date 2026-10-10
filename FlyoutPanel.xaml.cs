@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,9 +22,8 @@ public partial class FlyoutPanel : Window
     private const double EdgeGap = 8;
 
     /// <summary>
-    /// Clicking the tray icon while the panel is open deactivates it (hiding it)
-    /// and then fires the toggle, which would immediately reopen it. Ignoring
-    /// toggles that arrive right after a hide makes the icon close the panel.
+    /// A tray click can hide the panel before the toggle arrives. Ignore that
+    /// toggle so the same click doesn't reopen it.
     /// </summary>
     private static readonly TimeSpan ReopenSuppression = TimeSpan.FromMilliseconds(250);
 
@@ -48,14 +48,12 @@ public partial class FlyoutPanel : Window
         Deactivated += OnDeactivated;
         BuildTabs();
 
-        // Create the window handle now (without showing) so the global hotkey is
-        // live from launch, before the panel has ever been opened.
+        // Register the hotkey before the panel is first shown.
         new WindowInteropHelper(this).EnsureHandle();
     }
 
     private void OnDeactivated(object? sender, EventArgs e)
     {
-        // Respect the user's auto-hide preference; some prefer the panel to stay put.
         if (SettingsStore.Load().HideOnFocusLoss)
         {
             HidePanel();
@@ -239,9 +237,16 @@ public partial class FlyoutPanel : Window
             return;
         }
 
-        if (Clipboard.ContainsText())
+        try
         {
-            aware.OfferClipboardText(Clipboard.GetText());
+            if (Clipboard.ContainsText())
+            {
+                aware.OfferClipboardText(Clipboard.GetText());
+            }
+        }
+        catch (ExternalException)
+        {
+            // Another app may have the clipboard open. Leave the input alone.
         }
     }
 
@@ -269,8 +274,7 @@ public partial class FlyoutPanel : Window
     }
 
     /// <summary>
-    /// Anchors the card just inside the corner of the work area. WorkArea already
-    /// excludes the taskbar, so this lands above the tray wherever the taskbar sits.
+    /// Places the panel at the bottom-right of the primary screen's work area.
     /// </summary>
     private void MoveToTrayCorner()
     {

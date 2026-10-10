@@ -1,6 +1,6 @@
 namespace SomeTexty.Settings;
 
-/// <summary>User settings persisted to disk. Kept intentionally small.</summary>
+/// <summary>User settings saved to disk.</summary>
 public sealed class AppSettings
 {
     /// <summary>Words the user has added so they stop being flagged as misspelled.</summary>

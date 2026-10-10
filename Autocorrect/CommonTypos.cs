@@ -1,9 +1,7 @@
 namespace SomeTexty.Autocorrect;
 
 /// <summary>
-/// High-confidence fixes for very common misspellings. Hunspell's own top
-/// suggestion is often wrong for these (it offers "Te" for "teh"), so when a
-/// flagged word is in this list its correction is surfaced first.
+/// Common typo fixes to use before Hunspell's suggestions.
 /// Keys are lowercase; lookups are case-insensitive.
 /// </summary>
 public static class CommonTypos

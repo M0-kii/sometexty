@@ -1,11 +1,20 @@
 using System.Windows;
 using System.Windows.Controls;
+using SomeTexty.Tools;
 
 namespace SomeTexty.CaseConversion;
 
-public partial class CaseView : UserControl
+public partial class CaseView : UserControl, IClipboardAware
 {
     public CaseView() => InitializeComponent();
+
+    public void OfferClipboardText(string text)
+    {
+        if (string.IsNullOrEmpty(Input.Text))
+        {
+            Input.Text = text;
+        }
+    }
 
     private void OnUpper(object sender, RoutedEventArgs e) => Input.Text = CaseConverter.ToUpper(Input.Text);
 
